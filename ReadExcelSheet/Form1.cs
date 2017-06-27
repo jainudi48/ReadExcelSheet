@@ -21,7 +21,7 @@ namespace ReadExcelSheet
         public void readExcelDump()
         {
             Excel.Application xlApp = new Excel.Application();
-            Excel.Workbook xlWorkbook = xlApp.Workbooks.Open(@"/TestSheet.xlsx");
+            Excel.Workbook xlWorkbook = xlApp.Workbooks.Open(@"C:\Users\U_jain\Documents\Visual Studio 2013\Projects\TestSheet.xlsx");
             Excel._Worksheet xlWorksheet = xlWorkbook.Sheets[1];
             Excel.Range xlRange = xlWorksheet.UsedRange;
             int rowCount = xlWorksheet.UsedRange.Rows.Count;
