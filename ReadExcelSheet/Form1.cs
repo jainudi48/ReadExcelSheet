@@ -25,7 +25,41 @@ namespace ReadExcelSheet
         {
             InitializeComponent();
             InitializeObjects();
-            readExcelDump();
+            createInvalidOptionsExcel();
+            //readExcelDump();
+        }
+
+        public void createInvalidOptionsExcel()
+        {
+            Microsoft.Office.Interop.Excel.Application xlApp = new Microsoft.Office.Interop.Excel.Application();
+
+            if (xlApp == null)
+            {
+                Console.WriteLine("EXCEL could not be started. Check that your office installation and project references are correct.");
+                return;
+            }
+            xlApp.Visible = true;
+
+            Excel.Workbook wb = xlApp.Workbooks.Add(Excel.XlWBATemplate.xlWBATWorksheet);
+            Excel._Worksheet ws = wb.Worksheets[1];
+
+            if (ws == null)
+            {
+                Console.WriteLine("Worksheet could not be created. Check that your office installation and project references are correct.");
+            }
+
+            // Select the Excel cells, in the range c1 to c7 in the worksheet.
+            Excel.Range aRange = ws.get_Range("C1", "C7");
+
+            if (aRange == null)
+            {
+                Console.WriteLine("Could not get a range. Check to be sure you have the correct versions of the office DLLs.");
+            }
+
+            // Fill the cells in the C1 to C7 range of the worksheet with the number 6.
+            Object[] args = new Object[1];
+            args[0] = 6;
+            //aRange.GetType().InvokeMember("Value", BindingFlags.SetProperty, null, aRange, args);
         }
 
         public void InitializeObjects()
@@ -52,43 +86,66 @@ namespace ReadExcelSheet
 
             xlRange = xlWorksheet.UsedRange;
 
-            dummyPricesStrArray = new string[]{ "999999.99", "9999999.99" };
-            dummyPricesArray = dummyPricesStrArray;
-        }
-        public void readExcelDump()
-        {
-            
             rowCount = xlWorksheet.UsedRange.Rows.Count;
             colCount = xlWorksheet.UsedRange.Columns.Count;
 
-            for (int i = 1; i <= rowCount; i++)
-            {
-                for (int j = 1; j <= colCount; j++)
-                {
-                    //new line
-                    if (j == 1)
-                        Console.Write("\r\n");
+            dummyPricesStrArray = new string[]{ "999999.99", "9999999.99" };
+            dummyPricesArray = dummyPricesStrArray;
+        }
 
-                    //write the value to the console
-                    if (xlRange.Cells[i, j] != null && xlRange.Cells[i, j].Value2 != null)
-                        Console.Write(xlRange.Cells[i, j].Value2.ToString() + "\t");
-                        
-                    //add useful things here!   
-                    
+        public void readExcelDump()
+        {
+            String strCellValue = "";
+            for(int i = 2; i <= rowCount; i++)
+            {
+                try
+                {
+                    strCellValue = xlRange.Cells[i, colCount].Value2.ToString();
                 }
-            }
-
-            /*for(int i = 2; i <= rowCount; i++)
-            {
-                for(int j = 0; j < dummyPricesArray.Length; j++)
+                catch(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
                 {
-                    if((string)(xlWorksheet.Cells[i, colCount] as Excel.Range).Value == dummyPricesStrArray[j])
+                    // BLANK price values (CODE FOR INVALID OPTION)
+                    writeInvalidOptions(i);
+                    //Console.Write("BLANK VALUE : " + strCellValue + "\n");
+                }
+
+                if (Convert.ToDouble(strCellValue) <= 0)
+                {
+                    // Negative price values (CODE FOR INVALID OPTION)
+                    writeInvalidOptions(i);
+                    //Console.Write("NEGATIVE VALUE : " + strCellValue + "\n");
+                }
+                else
+                {
+                    for (int j = 0; j < dummyPricesArray.Length; j++)
                     {
-                        Console.Write(xlRange.Cells[i, colCount].Value2.ToString() + "\t");
+                        if (strCellValue == dummyPricesStrArray[j])
+                        {
+                            // Dummy price values (CODE FOR INVALID OPTION)
+                            writeInvalidOptions(i);
+                            //Console.Write("DUMMY VALUE : " + strCellValue + "\n");
+                        }
                     }
                 }
                 
-            }*/
+            }
+        }
+
+        public void writeInvalidOptions(int iRow)
+        {
+            for (int j = 1; j <= colCount; j++ )
+            {
+                try
+                {
+                    Console.Write(xlRange.Cells[iRow, j].Value2.ToString());
+                }
+                catch(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+                {
+                    Console.Write("");
+                }
+                
+            }
+            Console.Write("\n");
         }
     }
 }
