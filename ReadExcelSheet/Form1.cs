@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
+using System.Collections;
 
 namespace ReadExcelSheet
 {
@@ -16,27 +17,33 @@ namespace ReadExcelSheet
         Excel.Application xlApp;
         Excel.Workbook xlWorkbook;
         Excel._Worksheet xlWorksheet;
+        Excel.Workbook xlWorkbookInvalidOptions;
         Excel.Range xlRange;
+        ArrayList arrInvalidOptionsValues;
+        ArrayList arrRowsInvalidOptionsvalues;
         int rowCount;
         int colCount;
         Array dummyPricesArray;
         string[] dummyPricesStrArray;
+
+        int iXLWorksheetInvalidoptions;
         public Form1()
         {
             InitializeComponent();
             InitializeObjects();
-            createInvalidOptionsExcel();
+            //xlWorkbookInvalidOptions = createInvalidOptionsExcel();
             //readExcelDump();
+            filterDummyPriceValues();
         }
 
-        public void createInvalidOptionsExcel()
+        public Excel.Workbook createInvalidOptionsExcel()
         {
             Microsoft.Office.Interop.Excel.Application xlApp = new Microsoft.Office.Interop.Excel.Application();
 
             if (xlApp == null)
             {
                 Console.WriteLine("EXCEL could not be started. Check that your office installation and project references are correct.");
-                return;
+                return null;
             }
             xlApp.Visible = true;
 
@@ -48,24 +55,16 @@ namespace ReadExcelSheet
                 Console.WriteLine("Worksheet could not be created. Check that your office installation and project references are correct.");
             }
 
-            // Select the Excel cells, in the range c1 to c7 in the worksheet.
-            Excel.Range aRange = ws.get_Range("C1", "C7");
-
-            if (aRange == null)
-            {
-                Console.WriteLine("Could not get a range. Check to be sure you have the correct versions of the office DLLs.");
-            }
-
-            // Fill the cells in the C1 to C7 range of the worksheet with the number 6.
-            Object[] args = new Object[1];
-            args[0] = 6;
-            //aRange.GetType().InvokeMember("Value", BindingFlags.SetProperty, null, aRange, args);
+            return wb;
         }
 
         public void InitializeObjects()
         {
             xlApp = new Excel.Application();
-            
+
+            arrInvalidOptionsValues = new ArrayList();
+            arrRowsInvalidOptionsvalues = new ArrayList();
+            xlApp.Visible = true;
             try
             {
                 xlWorkbook = xlApp.Workbooks.Open(@"C:\Users\U_jain\MyData\LanguageTranslationToolAutomation\IT_27thJun_Q2Wk8.xlsx");
@@ -91,6 +90,8 @@ namespace ReadExcelSheet
 
             dummyPricesStrArray = new string[]{ "999999.99", "9999999.99" };
             dummyPricesArray = dummyPricesStrArray;
+
+            iXLWorksheetInvalidoptions = 2;
         }
 
         public void readExcelDump()
@@ -106,14 +107,12 @@ namespace ReadExcelSheet
                 {
                     // BLANK price values (CODE FOR INVALID OPTION)
                     writeInvalidOptions(i);
-                    //Console.Write("BLANK VALUE : " + strCellValue + "\n");
                 }
 
                 if (Convert.ToDouble(strCellValue) <= 0)
                 {
                     // Negative price values (CODE FOR INVALID OPTION)
                     writeInvalidOptions(i);
-                    //Console.Write("NEGATIVE VALUE : " + strCellValue + "\n");
                 }
                 else
                 {
@@ -123,12 +122,13 @@ namespace ReadExcelSheet
                         {
                             // Dummy price values (CODE FOR INVALID OPTION)
                             writeInvalidOptions(i);
-                            //Console.Write("DUMMY VALUE : " + strCellValue + "\n");
                         }
                     }
                 }
                 
             }
+            xlWorkbookInvalidOptions.SaveAs("C:\\Users\\U_jain\\Documents\\Visual Studio 2013\\Projects\\InvalidOptionsSheet.xlsx");
+            Console.Write("Completed!");
         }
 
         public void writeInvalidOptions(int iRow)
@@ -137,15 +137,27 @@ namespace ReadExcelSheet
             {
                 try
                 {
-                    Console.Write(xlRange.Cells[iRow, j].Value2.ToString());
+                    xlRange.Cells[iRow, j].Value2.ToString();
+                    //Console.Write(xlRange.Cells[iRow, j].Value2.ToString());
+                    xlWorkbookInvalidOptions.Worksheets[1].Cells[iXLWorksheetInvalidoptions, j] = xlRange.Cells[iRow, j].Value2;
+                    arrInvalidOptionsValues.Add(xlRange.Cells[iRow, j].Value2);
                 }
                 catch(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
                 {
-                    Console.Write("");
+                    xlWorkbookInvalidOptions.Worksheets[1].Cells[iXLWorksheetInvalidoptions, j] = null;
+                    //Console.Write("");
+                    arrInvalidOptionsValues.Add(null);
                 }
-                
             }
-            Console.Write("\n");
+            iXLWorksheetInvalidoptions++;
+            arrRowsInvalidOptionsvalues.Add(arrInvalidOptionsValues);
+            //Console.Write("\n");
+        }
+        public void filterDummyPriceValues()
+        {
+            xlWorksheet.ListObjects.AddEx(Excel.XlListObjectSourceType.xlSrcRange, xlWorksheet.UsedRange, System.Type.Missing, Excel.XlYesNoGuess.xlYes).Name = "InvalidOptions";
+            xlWorksheet.ListObjects["InvalidOptions"].Range.AutoFilter(21, dummyPricesStrArray, Excel.XlAutoFilterOperator.xlFilterValues);
         }
     }
+    
 }
