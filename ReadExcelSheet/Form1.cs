@@ -31,33 +31,12 @@ namespace ReadExcelSheet
         {
             InitializeComponent();
             InitializeObjects();
-            //xlWorkbookInvalidOptions = createInvalidOptionsExcel();
+            xlWorkbookInvalidOptions = createInvalidOptionsExcel();
             //readExcelDump();
             filterDummyPriceValues();
         }
 
-        public Excel.Workbook createInvalidOptionsExcel()
-        {
-            Microsoft.Office.Interop.Excel.Application xlApp = new Microsoft.Office.Interop.Excel.Application();
-
-            if (xlApp == null)
-            {
-                Console.WriteLine("EXCEL could not be started. Check that your office installation and project references are correct.");
-                return null;
-            }
-            xlApp.Visible = true;
-
-            Excel.Workbook wb = xlApp.Workbooks.Add(Excel.XlWBATemplate.xlWBATWorksheet);
-            Excel._Worksheet ws = wb.Worksheets[1];
-
-            if (ws == null)
-            {
-                Console.WriteLine("Worksheet could not be created. Check that your office installation and project references are correct.");
-            }
-
-            return wb;
-        }
-
+        
         public void InitializeObjects()
         {
             xlApp = new Excel.Application();
@@ -88,13 +67,36 @@ namespace ReadExcelSheet
             rowCount = xlWorksheet.UsedRange.Rows.Count;
             colCount = xlWorksheet.UsedRange.Columns.Count;
 
-            dummyPricesStrArray = new string[]{ "999999.99", "9999999.99" };
+            dummyPricesStrArray = new string[]{ "999999.99", "9999999.99", "", "0" };
             dummyPricesArray = dummyPricesStrArray;
 
             iXLWorksheetInvalidoptions = 2;
         }
 
-        public void readExcelDump()
+        public Excel.Workbook createInvalidOptionsExcel()
+        {
+            Microsoft.Office.Interop.Excel.Application xlApp = new Microsoft.Office.Interop.Excel.Application();
+
+            if (xlApp == null)
+            {
+                Console.WriteLine("EXCEL could not be started. Check that your office installation and project references are correct.");
+                return null;
+            }
+            xlApp.Visible = true;
+
+            Excel.Workbook wb = xlApp.Workbooks.Add(Excel.XlWBATemplate.xlWBATWorksheet);
+            Excel._Worksheet ws = wb.Worksheets[1];
+
+            if (ws == null)
+            {
+                Console.WriteLine("Worksheet could not be created. Check that your office installation and project references are correct.");
+            }
+
+            return wb;
+        }
+
+
+        /*public void readExcelDump()
         {
             String strCellValue = "";
             for(int i = 2; i <= rowCount; i++)
@@ -152,11 +154,21 @@ namespace ReadExcelSheet
             iXLWorksheetInvalidoptions++;
             arrRowsInvalidOptionsvalues.Add(arrInvalidOptionsValues);
             //Console.Write("\n");
-        }
+        }*/
+
         public void filterDummyPriceValues()
         {
+            Excel.Range originalSheetRange = xlWorksheet.UsedRange;
             xlWorksheet.ListObjects.AddEx(Excel.XlListObjectSourceType.xlSrcRange, xlWorksheet.UsedRange, System.Type.Missing, Excel.XlYesNoGuess.xlYes).Name = "InvalidOptions";
             xlWorksheet.ListObjects["InvalidOptions"].Range.AutoFilter(21, dummyPricesStrArray, Excel.XlAutoFilterOperator.xlFilterValues);
+            Excel.Range invalidOptionsRange = originalSheetRange.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
+            writeInvalidOptions(invalidOptionsRange);
+            xlWorksheet.SaveAs("C:\\Users\\U_jain\\Documents\\Visual Studio 2013\\Projects\\InvalidOptionsSheet.xlsx");
+        }
+
+        public void writeInvalidOptions(Excel.Range invalidOptionsRange)
+        {
+            
         }
     }
     
