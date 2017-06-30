@@ -17,21 +17,20 @@ namespace ReadExcelSheet
         Excel.Application xlApp;
         Excel.Workbook xlWorkbook;
         Excel._Worksheet xlWorksheet;
+        Excel.Application xlAppInvalidOptions;
         Excel.Workbook xlWorkbookInvalidOptions;
+        Excel._Worksheet xlWorksheetInvalidOptions;
         Excel.Range xlRange;
-        ArrayList arrInvalidOptionsValues;
-        ArrayList arrRowsInvalidOptionsvalues;
         int rowCount;
         int colCount;
         Array dummyPricesArray;
         string[] dummyPricesStrArray;
 
-        int iXLWorksheetInvalidoptions;
         public Form1()
         {
             InitializeComponent();
             InitializeObjects();
-            xlWorkbookInvalidOptions = createInvalidOptionsExcel();
+            //xlWorkbookInvalidOptions = createInvalidOptionsExcel();
             //readExcelDump();
             filterDummyPriceValues();
         }
@@ -41,12 +40,10 @@ namespace ReadExcelSheet
         {
             xlApp = new Excel.Application();
 
-            arrInvalidOptionsValues = new ArrayList();
-            arrRowsInvalidOptionsvalues = new ArrayList();
             xlApp.Visible = true;
             try
             {
-                xlWorkbook = xlApp.Workbooks.Open(@"C:\Users\U_jain\MyData\LanguageTranslationToolAutomation\IT_27thJun_Q2Wk8.xlsx");
+                xlWorkbook = xlApp.Workbooks.Open(@"C:\Users\U_jain\Documents\Visual Studio 2013\Projects\IT_27thJun_Q2Wk8.xlsx");
             }
             catch(Exception e)
             {
@@ -67,13 +64,12 @@ namespace ReadExcelSheet
             rowCount = xlWorksheet.UsedRange.Rows.Count;
             colCount = xlWorksheet.UsedRange.Columns.Count;
 
-            dummyPricesStrArray = new string[]{ "999999.99", "9999999.99", "", "0" };
+            dummyPricesStrArray = new string[]{ "999999.99", "9999999.99", "" };
             dummyPricesArray = dummyPricesStrArray;
 
-            iXLWorksheetInvalidoptions = 2;
         }
 
-        public Excel.Workbook createInvalidOptionsExcel()
+        /*public Excel.Workbook createInvalidOptionsExcel()
         {
             Microsoft.Office.Interop.Excel.Application xlApp = new Microsoft.Office.Interop.Excel.Application();
 
@@ -96,7 +92,7 @@ namespace ReadExcelSheet
         }
 
 
-        /*public void readExcelDump()
+        public void readExcelDump()
         {
             String strCellValue = "";
             for(int i = 2; i <= rowCount; i++)
@@ -162,13 +158,35 @@ namespace ReadExcelSheet
             xlWorksheet.ListObjects.AddEx(Excel.XlListObjectSourceType.xlSrcRange, xlWorksheet.UsedRange, System.Type.Missing, Excel.XlYesNoGuess.xlYes).Name = "InvalidOptions";
             xlWorksheet.ListObjects["InvalidOptions"].Range.AutoFilter(21, dummyPricesStrArray, Excel.XlAutoFilterOperator.xlFilterValues);
             Excel.Range invalidOptionsRange = originalSheetRange.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
-            writeInvalidOptions(invalidOptionsRange);
-            xlWorksheet.SaveAs("C:\\Users\\U_jain\\Documents\\Visual Studio 2013\\Projects\\InvalidOptionsSheet.xlsx");
+            xlWorkbook.SaveAs(@"C:\Users\U_jain\Documents\Visual Studio 2013\Projects\InvalidOptionsSheet.xlsx");
+            xlWorksheetInvalidOptions = xlWorksheet;
+            xlWorkbookInvalidOptions = xlWorkbook;
+            xlAppInvalidOptions = xlApp;
+            openOriginalWorkbook();
         }
 
-        public void writeInvalidOptions(Excel.Range invalidOptionsRange)
+        public void openOriginalWorkbook()
         {
-            
+            xlApp = new Excel.Application();
+
+            xlApp.Visible = true;
+            try
+            {
+                xlWorkbook = xlApp.Workbooks.Open(@"C:\Users\U_jain\Documents\Visual Studio 2013\Projects\IT_27thJun_Q2Wk8.xlsx");
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Error in opening excel file!");
+            }
+
+            try
+            {
+                xlWorksheet = xlWorkbook.Sheets[1];
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show("Expected worksheet not found!");
+            }
         }
     }
     
