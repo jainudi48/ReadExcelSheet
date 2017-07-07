@@ -1,6 +1,6 @@
 ﻿namespace ReadExcelSheet
 {
-    partial class Form1
+    partial class ExcelOps
     {
         /// <summary>
         /// Required designer variable.
